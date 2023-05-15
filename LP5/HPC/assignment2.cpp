@@ -200,7 +200,8 @@ void test_merge_sort_performance(int n)
 int main()
 {
     int n = 1000000;
-    // test_bubble_sort_performance(n);
+    test_bubble_sort_performance(n);
+    cout << "------------------";
     test_merge_sort_performance(n);
     return 0;
 }
