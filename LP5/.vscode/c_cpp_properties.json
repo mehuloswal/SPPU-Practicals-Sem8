@@ -11,8 +11,8 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64",
-            "compilerPath": "/opt/homebrew/bin/gcc-13"
+            "intelliSenseMode": "macos-gcc-arm64",
+            "compilerPath": "/opt/homebrew/bin/g++-13"
         }
     ],
     "version": 4
