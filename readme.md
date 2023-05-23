@@ -32,6 +32,21 @@ int main(){
 
 [Click here for detailed steps](https://www.geeksforgeeks.org/how-to-run-cuda-c-c-on-jupyter-notebook-in-google-colaboratory/)
 
+### For running CUDA programms using nvcc:-
+
+First install nvcc on your nvidia supported machine using
+
+```bash
+$> sudo apt install nvidia-cuda-toolkit
+```
+
+Then use these commands to compile and execute the programs
+
+```bash
+$> nvcc filename.cu -o output_file
+$> ./output_file
+```
+
 ### For running mpi programs hit commands:-
 
 `mpic++ parallel_quicksort.cpp -o parallel_quicksort`
