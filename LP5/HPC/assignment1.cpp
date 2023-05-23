@@ -2,8 +2,9 @@
 
 using namespace std;
 
-struct TreeNode
+class TreeNode
 {
+public:
     int val;
     TreeNode *left;
     TreeNode *right;

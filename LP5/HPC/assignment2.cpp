@@ -9,9 +9,9 @@ using namespace std;
 // Function to perform sequential bubble sort
 void sequential_bubble_sort(int arr[], int n)
 {
-    for (int i = 0; i < n - 1; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n - i - 1; j++)
+        for (int j = 0; j < n; j++)
         {
             if (arr[j] > arr[j + 1])
             {
@@ -26,20 +26,19 @@ void sequential_bubble_sort(int arr[], int n)
 // Function to perform parallel bubble sort
 void parallel_bubble_sort(int arr[], int n)
 {
-#pragma omp parallel
+
+// Parallelize the outer loop
+#pragma omp parallel for shared(arr, n)
+    for (int i = 0; i < n; i++)
     {
-        for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n; j++)
         {
-            int thread_num = omp_get_thread_num();
-            int num_threads = omp_get_num_threads();
-            for (int j = thread_num; j < n - i - 1; j += num_threads)
+            if (arr[j] > arr[j + 1])
             {
-                if (arr[j] > arr[j + 1])
-                {
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
+                // Swap elements if they are in the wrong order
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
             }
         }
     }
@@ -101,34 +100,28 @@ void sequential_merge_sort(int arr[], int l, int r)
 }
 
 // Function to perform parallel merge sort
-void parallel_merge_sort(int arr[], int l, int r, int threads)
+void parallel_merge_sort(int arr[], int low, int high)
 {
-    if (l < r)
+    if (low < high)
     {
-        int m = l + (r - l) / 2;
-        if (threads > 1 && r - l + 1 >= threads * 1000)
-        {
+        int mid = (low + high) / 2;
 #pragma omp parallel sections
-            {
-#pragma omp section
-                {
-                    parallel_merge_sort(arr, l, m, threads / 2);
-                }
-#pragma omp section
-                {
-                    parallel_merge_sort(arr, m + 1, r, threads - threads / 2);
-                }
-            }
-        }
-        else
         {
-            sequential_merge_sort(arr, l, m);
-            sequential_merge_sort(arr, m + 1, r);
-            merge(arr, l, m, r);
+#pragma omp section
+            parallel_merge_sort(arr, low, mid);
+#pragma omp section
+            parallel_merge_sort(arr, mid + 1, high);
         }
+        merge(arr, low, mid, high);
     }
 }
-
+void print_array(int *arr, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        cout << arr[i] << " ";
+    }
+}
 // Function to test the performance of sequential and parallel bubble sort
 void test_bubble_sort_performance(int n)
 {
@@ -157,7 +150,10 @@ void test_bubble_sort_performance(int n)
 
     // Print the execution times of the sequential and parallel bubble sort
     cout << "Sequential bubble sort time: " << sequential_sort_time << " microseconds" << endl;
-    cout << "Parallel bubble sort time: " << parallel_sort_time << " microseconds" << endl;
+    print_array(arr, n);
+
+    cout << "\nParallel bubble sort time: " << parallel_sort_time << " microseconds" << endl;
+    print_array(arr_copy, n);
 
     // Free the memory allocated for the arrays
     delete[] arr;
@@ -181,17 +177,17 @@ void test_merge_sort_performance(int n)
     double start = omp_get_wtime();
     sequential_merge_sort(arr, 0, n - 1);
     double end = omp_get_wtime();
-
     std::cout << "Sequential merge sort took " << end - start << " seconds\n";
+    print_array(arr, n);
 
     // Perform parallel merge sort and measure time
-    int threads = omp_get_max_threads();
+    // int threads = omp_get_max_threads();
     start = omp_get_wtime();
     // int num_threads = omp_get_max_threads();
-    parallel_merge_sort(arr_copy, 0, n - 1, threads);
+    parallel_merge_sort(arr_copy, 0, n - 1);
     end = omp_get_wtime();
-
-    std::cout << "Parallel merge sort took " << end - start << " seconds\n";
+    std::cout << "\nParallel merge sort took " << end - start << " seconds\n";
+    print_array(arr_copy, n);
 
     delete[] arr;
 }
@@ -199,9 +195,9 @@ void test_merge_sort_performance(int n)
 // Example usage
 int main()
 {
-    int n = 1000000;
+    int n = 10;
     test_bubble_sort_performance(n);
-    cout << "------------------";
+    cout << "\n------------------\n";
     test_merge_sort_performance(n);
     return 0;
 }
