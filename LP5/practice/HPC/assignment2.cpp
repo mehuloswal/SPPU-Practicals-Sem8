@@ -1,17 +1,22 @@
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <chrono>
 #include <omp.h>
+#include <chrono>
 
 using namespace std;
-
-// Function to perform sequential bubble sort
-void sequential_bubble_sort(int arr[], int n)
+void print_array(int *arr, int n)
 {
     for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n - 1; j++)
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+}
+void sequential_bubble_sort(int *arr, int n)
+{
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
         {
             if (arr[j] > arr[j + 1])
             {
@@ -22,20 +27,15 @@ void sequential_bubble_sort(int arr[], int n)
         }
     }
 }
-
-// Function to perform parallel bubble sort
-void parallel_bubble_sort(int arr[], int n)
+void parallel_bubble_sort(int *arr, int n)
 {
-
-// Parallelize the outer loop
 #pragma omp parallel for shared(arr, n)
     for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n - 1; j++)
+        for (int j = 0; j < n; j++)
         {
             if (arr[j] > arr[j + 1])
             {
-                // Swap elements if they are in the wrong order
                 int temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
@@ -44,21 +44,20 @@ void parallel_bubble_sort(int arr[], int n)
     }
 }
 
-// Function to merge two sorted arrays
-void merge(int arr[], int l, int m, int r)
+void merge(int *arr, int left, int mid, int right)
 {
-    int n1 = m - l + 1;
-    int n2 = r - m;
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
     int L[n1], R[n2];
     for (int i = 0; i < n1; i++)
     {
-        L[i] = arr[l + i];
+        L[i] = arr[left + i];
     }
-    for (int j = 0; j < n2; j++)
+    for (int i = 0; i < n2; i++)
     {
-        R[j] = arr[m + 1 + j];
+        R[i] = arr[mid + 1 + i];
     }
-    int i = 0, j = 0, k = l;
+    int i = 0, j = 0, k = left;
     while (i < n1 && j < n2)
     {
         if (L[i] <= R[j])
@@ -87,42 +86,36 @@ void merge(int arr[], int l, int m, int r)
     }
 }
 
-// Function to perform sequential merge sort
-void sequential_merge_sort(int arr[], int l, int r)
+void sequential_merge_sort(int *arr, int left, int right)
 {
-    if (l < r)
+    if (left < right)
     {
-        int m = l + (r - l) / 2;
-        sequential_merge_sort(arr, l, m);
-        sequential_merge_sort(arr, m + 1, r);
-        merge(arr, l, m, r);
+        int mid = left + (right - left) / 2;
+        sequential_merge_sort(arr, left, mid);
+        sequential_merge_sort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
     }
 }
 
-// Function to perform parallel merge sort
-void parallel_merge_sort(int arr[], int low, int high)
+void parallel_merge_sort(int *arr, int left, int right)
 {
-    if (low < high)
+    if (left < right)
     {
-        int mid = (low + high) / 2;
+        int mid = left + (right - left) / 2;
 #pragma omp parallel sections
         {
 #pragma omp section
-            parallel_merge_sort(arr, low, mid);
+            {
+                parallel_merge_sort(arr, left, mid);
+            }
 #pragma omp section
-            parallel_merge_sort(arr, mid + 1, high);
+            {
+                parallel_merge_sort(arr, mid + 1, right);
+            }
         }
-        merge(arr, low, mid, high);
+        merge(arr, left, mid, right);
     }
 }
-void print_array(int *arr, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        cout << arr[i] << " ";
-    }
-}
-// Function to test the performance of sequential and parallel bubble sort
 void test_bubble_sort_performance(int n)
 {
     int *arr = new int[n];
@@ -132,7 +125,7 @@ void test_bubble_sort_performance(int n)
     srand(time(NULL));
     for (int i = 0; i < n; i++)
     {
-        arr[i] = rand();
+        arr[i] = rand() % 1000;
         arr_copy[i] = arr[i];
     }
 
@@ -153,7 +146,7 @@ void test_bubble_sort_performance(int n)
     print_array(arr, n);
 
     cout << "\nParallel bubble sort time: " << parallel_sort_time << " microseconds" << endl;
-    print_array(arr_copy, n);
+    print_array(arr, n);
 
     // Free the memory allocated for the arrays
     delete[] arr;
@@ -173,29 +166,24 @@ void test_merge_sort_performance(int n)
         arr_copy[i] = arr[i];
     }
 
-    // Perform sequential merge sort and measure time
-    double start = omp_get_wtime();
+    auto start = chrono::high_resolution_clock::now();
     sequential_merge_sort(arr, 0, n - 1);
-    double end = omp_get_wtime();
-    std::cout << "Sequential merge sort took " << end - start << " seconds\n";
+    auto end = chrono::high_resolution_clock::now();
+    std::cout << "Sequential merge sort took " << chrono::duration_cast<chrono::microseconds>(end - start).count() << "microseconds\n";
     print_array(arr, n);
 
-    // Perform parallel merge sort and measure time
-    // int threads = omp_get_max_threads();
-    start = omp_get_wtime();
-    // int num_threads = omp_get_max_threads();
+    start = chrono::high_resolution_clock::now();
     parallel_merge_sort(arr_copy, 0, n - 1);
-    end = omp_get_wtime();
-    std::cout << "\nParallel merge sort took " << end - start << " seconds\n";
+    end = chrono::high_resolution_clock::now();
+    std::cout << "\nParallel merge sort took " << chrono::duration_cast<chrono::microseconds>(end - start).count() << "microseconds\n";
     print_array(arr_copy, n);
 
     delete[] arr;
+    delete[] arr_copy;
 }
-
-// Example usage
 int main()
 {
-    int n = 10;
+    int n = 5;
     test_bubble_sort_performance(n);
     cout << "\n------------------\n";
     test_merge_sort_performance(n);
