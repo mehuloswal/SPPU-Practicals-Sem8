@@ -52,5 +52,7 @@ $> ./output_file
 `mpic++ parallel_quicksort.cpp -o parallel_quicksort`
 `mpiexec -n 4 ./parallel_quicksort`
 
+[Click here for Notes of LP5](https://docs.google.com/document/d/1JEeGDZbobH4rG-nU25bbZB3Ly_fis6eBe75PFl-yE0A/edit?usp=sharing)
+
 Contributed by :
 [Mehul Oswal](https://github.com/mehuloswal), [Burhanuddin Merchant](https://github.com/burhanuddinmerchant), [Rohin Bhat](https://github.com/RohinBhat)
